@@ -41,8 +41,10 @@
             style="display: block;"></video>
 
         <!-- Main video (video2) for interactive control -->
-        <video id="video2" playsinline webkit-playsinline muted autoplay src="images/panorama.mp4"
+        <video id="video2" playsinline webkit-playsinline muted autoplay src="https://ucdab7214d2d7d1e0f79628cea2d.dl.dropboxusercontent.com/cd/0/inline/Ceprv5bbJ72HJebmhpEHvVdS0sOYUUWVjHOUxtGFCn9OYZR14TbUA5iJ0IArTU722mEFX1AvbecAFFv4DjpJq40Z_zvc6zCF9RmXnplhWEnu5yLLjuyNtKq497Gl_VZoagcyEZ38Qf8IJGjbid0KZo1W/file#"
             style="display: none;"></video>
+
+            
     </div>
 
     <script>
@@ -226,16 +228,16 @@
         function enableInteractiveControl() {
             const video2 = document.getElementById('video2');
             const fps = 24;
-            const moveStart = 0;
-            const candleLit = 80;
-            const songPlay = 270;
-            const candleBlow = 465;
-            const totalFrames = 560;
+            const moveStart = 120;
+            const candleLit = 360;
+            const songPlay = 560;
+            const candleBlow = 900;
+            const totalFrames = 1620;
 
             let playbackInterval;
             // cut start to candleLit into pieces
-            const moveSteps = 5 // number to cut
-            const sectionFrames = Math.floor((candleLit - moveStart) / moveSteps); // Divide the segment into 5 pieces
+            const moveSteps = 20 // number to cut
+            const sectionFrames = Math.floor((candleLit - moveStart) / moveSteps); // Divide the segment into pieces
             let currentSection = 0; // Track the current section from 0 to 4
 
             // Convert frame to time in seconds
@@ -277,16 +279,18 @@
             window.addEventListener("keydown", (e) => handleInteraction(e.code));
 
             function handleInteraction(action) {
-                if (Math.floor(video2.currentTime * fps) < candleLit) {
+                if (action === "Space" && Math.floor(video2.currentTime * fps) === 0) {
+                    playForwardToTarget(0, moveStart);
+                } else if (Math.floor(video2.currentTime * fps) >= moveStart && Math.floor(video2.currentTime * fps) < candleLit) {
 
                     if (action === "ArrowUp" && currentSection < moveSteps) { // Check if there's a next section
-                        const startFrame = sectionFrames * (currentSection);
-                        const endFrame = sectionFrames * (currentSection + 1);
+                        const startFrame = moveStart + sectionFrames * (currentSection);
+                        const endFrame = moveStart + sectionFrames * (currentSection + 1);
                         playForwardToTarget(startFrame, endFrame);
                         currentSection++;
                     } else if (action === "ArrowDown" && currentSection > 0) { // Check if there's a previous section
-                        const startFrame = sectionFrames * (currentSection - 1);
-                        const endFrame = sectionFrames * (currentSection);
+                        const startFrame = moveStart + sectionFrames * (currentSection - 1);
+                        const endFrame = moveStart + sectionFrames * (currentSection);
                         playBackwardToTarget(startFrame, endFrame); // need changing!!
                         currentSection--;
                     }
@@ -299,33 +303,6 @@
                 }
             }
 
-            // Mobile touch interactions
-            let startY, endY;
-            document.addEventListener("touchstart", (e) => {
-                startY = e.touches[0].clientY;
-            });
-
-            document.addEventListener("touchmove", (e) => {
-                endY = e.touches[0].clientY;
-            });
-
-            document.addEventListener("touchend", () => {
-                const swipeDistance = endY - startY;
-                if (swipeDistance < -50) {
-                    handleInteraction("ArrowUp");
-                } else if (swipeDistance > 50) {
-                    handleInteraction("ArrowDown");
-                } else {
-                    const currentFrame = Math.floor(video2.currentTime * fps);
-                    if (currentFrame === candleLit) {
-                        handleInteraction("Enter");
-                    } else if (currentFrame === songPlay) {
-                        handleInteraction("Space");
-                    } else if (currentFrame === candleBlow) {
-                        handleInteraction("Backspace");
-                    }
-                }
-            });
 
             // Display instructions based on the current frame
             video2.addEventListener("timeupdate", () => {
@@ -336,12 +313,20 @@
 
 
 
-                if (currentFrame === moveStart) {
+                if (currentFrame === 0) {
+                    instructionText.typeString('Something seems moving on the ground...\r\nPress SPACE to see what is going on.').start();
+                } else if (currentFrame === moveStart) {
                     instructionText.typeString('Press UP or DOWN on your keyboard to move.').start();
+                } else if (currentFrame === candleLit - 3 * sectionFrames) {
+                    instructionText.typeString('A wried table...').start();
+                } else if (currentFrame === candleLit - 2 * sectionFrames) {
+                    instructionText.typeString('...an unlitted candle on a cake...').start();
+                } else if (currentFrame === candleLit - 1 * sectionFrames) {
+                    instructionText.typeString('... and a match box...').start();
                 } else if (currentFrame === candleLit) {
                     instructionText.typeString('Press ENTER to light up the candle.').start();
                 } else if (currentFrame === songPlay) {
-                    instructionText.typeString('Press SPACEBAR to listen to the blessing of singing.').start();
+                    instructionText.typeString('Press SPACE to listen to the blessing of singing.').start();
                 } else if (currentFrame === candleBlow) {
                     instructionText.typeString('Press BACKSPACE to blow out the candle.').start();
                 }
